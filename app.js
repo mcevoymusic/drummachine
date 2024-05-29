@@ -1,7 +1,7 @@
 const rows = document.querySelector(".sequencer").children;
 
-const kick = new Audio("https://raw.githubusercontent.com/kucerajacob/DRUM-SEQUENCER/master/audio/kick.mp3"),
-	clap = new Audio("https://raw.githubusercontent.com/kucerajacob/DRUM-SEQUENCER/master/audio/clap.mp3"),
+const kick = new Audio("https://github.com/mcevoymusic/drummachine/raw/main/Sounds/Kick.wav"),
+	clap = new Audio("https://github.com/mcevoymusic/drummachine/raw/main/Sounds/Snare.wav"),
 	hihat = new Audio("https://raw.githubusercontent.com/kucerajacob/DRUM-SEQUENCER/master/audio/hihat.mp3"),
 	rim = new Audio("https://raw.githubusercontent.com/kucerajacob/DRUM-SEQUENCER/master/audio/rim.mp3"),
 	Q = new Audio("https://raw.githubusercontent.com/kucerajacob/DRUM-SEQUENCER/master/audio/Q.mp3"),
