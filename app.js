@@ -1,151 +1,186 @@
+// Initialize AudioContext
+const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+// Function to generate a drum sound
+function playDrumSound(type) {
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    switch (type) {
+        case 'kick':
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(150, audioContext.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+            gainNode.gain.setValueAtTime(1, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.5);
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.5);
+            break;
+        case 'snare':
+            const whiteNoise = audioContext.createBufferSource();
+            const bufferSize = audioContext.sampleRate;
+            const buffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = Math.random() * 2 - 1;
+            }
+            whiteNoise.buffer = buffer;
+
+            const noiseGain = audioContext.createGain();
+            whiteNoise.connect(noiseGain);
+            noiseGain.connect(audioContext.destination);
+
+            noiseGain.gain.setValueAtTime(1, audioContext.currentTime);
+            noiseGain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+
+            oscillator.type = 'triangle';
+            oscillator.frequency.setValueAtTime(200, audioContext.currentTime);
+            gainNode.gain.setValueAtTime(1, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+
+            whiteNoise.start(audioContext.currentTime);
+            whiteNoise.stop(audioContext.currentTime + 0.2);
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.1);
+            break;
+        case 'hihat':
+            const hiHatNoise = audioContext.createBufferSource();
+            const hiHatBufferSize = audioContext.sampleRate;
+            const hiHatBuffer = audioContext.createBuffer(1, hiHatBufferSize, audioContext.sampleRate);
+            const hiHatData = hiHatBuffer.getChannelData(0);
+            for (let i = 0; i < hiHatBufferSize; i++) {
+                hiHatData[i] = Math.random() * 2 - 1;
+            }
+            hiHatNoise.buffer = hiHatBuffer;
+
+            const hiHatFilter = audioContext.createBiquadFilter();
+            hiHatFilter.type = 'bandpass';
+            hiHatFilter.frequency.setValueAtTime(10000, audioContext.currentTime);
+            hiHatFilter.Q.setValueAtTime(1, audioContext.currentTime);
+
+            const hiHatGain = audioContext.createGain();
+            hiHatNoise.connect(hiHatFilter);
+            hiHatFilter.connect(hiHatGain);
+            hiHatGain.connect(audioContext.destination);
+
+            hiHatGain.gain.setValueAtTime(0.3, audioContext.currentTime);
+            hiHatGain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.1);
+
+            hiHatNoise.start(audioContext.currentTime);
+            hiHatNoise.stop(audioContext.currentTime + 0.1);
+            break;
+        case 'rim':
+            oscillator.type = 'square';
+            oscillator.frequency.setValueAtTime(2000, audioContext.currentTime);
+            gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.05);
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.1);
+            break;
+    }
+}
+
 const rows = document.querySelector(".sequencer").children;
-
-const kick = new Audio("https://raw.githubusercontent.com/mcevoymusic/drummachine/main/Sounds/Kick.mp3"),
-	clap = new Audio("https://raw.githubusercontent.com/mcevoymusic/drummachine/main/Sounds/Snare2.mp3"),
-	hihat = new Audio("https://raw.githubusercontent.com/mcevoymusic/drummachine/main/Sounds/Hat.mp3"),
-	rim = new Audio("https://raw.githubusercontent.com/mcevoymusic/drummachine/master/Sounds/Rim.mp3"),
-	Q = new Audio("https://raw.githubusercontent.com/kucerajacob/DRUM-SEQUENCER/master/audio/Q.mp3"),
-	W = new Audio("https://raw.githubusercontent.com/kucerajacob/DRUM-SEQUENCER/master/audio/W.mp3"),
-	E = new Audio("https://raw.githubusercontent.com/kucerajacob/DRUM-SEQUENCER/master/audio/E.mp3"),
-	R = new Audio("https://raw.githubusercontent.com/kucerajacob/DRUM-SEQUENCER/master/audio/R.mp3");
-
 const item = document.querySelectorAll(".sample");
 
 // Checkbox toggle functionality
 item.forEach(function (el) {
-	el.onclick = function () {
-		if (el.classList.contains("item-selected")) {
-			el.classList.remove("item-selected");
-		} else {
-			el.classList.add("item-selected");
-		}
-	}
+    el.onclick = function () {
+        el.classList.toggle("item-selected");
+    };
 });
 
 // Clear button functionality
 document.getElementById("clear-track").onclick = function () {
-	[].forEach.call(item, function (el) {
-		el.classList.remove("item-selected");
-	});
-}
-
-// Sample pad key press functionality
-document.onkeydown = function (e) {
-	e = e || window.event;
-
-	switch (e.key) {
-		case "q":
-			Q.load();
-			Q.play();
-			document.getElementById("sampler1").classList.add("pressed");
-			break;
-		case "w":
-			W.load();
-			W.play();
-			document.getElementById("sampler2").classList.add("pressed");
-			break;
-		case "e":
-			E.load();
-			E.play();
-			document.getElementById("sampler3").classList.add("pressed");
-			break;
-		case "r":
-			R.load();
-			R.play();
-			document.getElementById("sampler4").classList.add("pressed");
-			break;	
-	}
-}
-
-document.onkeyup = function (e) {
-	e = e || window.event;
-
-	switch (e.key) {
-		case "q":
-			// Q.pause();
-			// Q.currentTime = 0;
-			document.getElementById("sampler1").classList.remove("pressed");
-			break;
-		case "w":
-			// W.pause();
-			// W.currentTime = 0;
-			document.getElementById("sampler2").classList.remove("pressed");
-			break;
-		case "e":
-			// E.pause();
-			// E.currentTime = 0;
-			document.getElementById("sampler3").classList.remove("pressed");
-			break;
-		case "r":
-			// R.pause();
-			// R.currentTime = 0;
-			document.getElementById("sampler4").classList.remove("pressed");
-			break;	
-	}
-}
+    [].forEach.call(item, function (el) {
+        el.classList.remove("item-selected");
+    });
+};
 
 // BPM slider
 const bpmSlider = document.getElementById("bpm-slider");
 const bpmText = document.getElementById("bpm");
-var BPM = bpmSlider.value;
+let BPM = bpmSlider.value;
 
 bpmText.innerHTML = bpmSlider.value + " BPM";
 
 bpmSlider.oninput = function () {
-	bpmText.innerHTML = this.value + " BPM";
-	BPM = parseInt(((60 / bpmSlider.value) * 1000) / 4);
-}
+    bpmText.innerHTML = this.value + " BPM";
+    BPM = parseInt(((60 / bpmSlider.value) * 1000) / 4);
+};
 
 let i = -1;
-rowLoop = () => {
-	setTimeout(function () {
-		i++;
+let isPlaying = false;
+let loopTimeout;
 
-		if (i === rows.length) {
-			i = 0;
-			document.querySelector(".d16").childNodes[1].classList.remove("row-highlight");
-			document.querySelector(".d16").childNodes[3].classList.remove("row-highlight");
-			document.querySelector(".d16").childNodes[5].classList.remove("row-highlight");
-			document.querySelector(".d16").childNodes[7].classList.remove("row-highlight");
-		}
+function rowLoop() {
+    if (!isPlaying) return;
+    loopTimeout = setTimeout(function () {
+        i++;
 
-		document.querySelector(".d" + (i + 1)).childNodes[1].classList.add("row-highlight");
-		document.querySelector(".d" + (i + 1)).childNodes[3].classList.add("row-highlight");
-		document.querySelector(".d" + (i + 1)).childNodes[5].classList.add("row-highlight");
-		document.querySelector(".d" + (i + 1)).childNodes[7].classList.add("row-highlight");
+        if (i === rows.length) {
+            i = 0;
+            document.querySelector(".d16").childNodes[1].classList.remove("row-highlight");
+            document.querySelector(".d16").childNodes[3].classList.remove("row-highlight");
+            document.querySelector(".d16").childNodes[5].classList.remove("row-highlight");
+            document.querySelector(".d16").childNodes[7].classList.remove("row-highlight");
+        }
 
-		if (i > 0) {
-			document.querySelector(".d" + i).childNodes[1].classList.remove("row-highlight");
-			document.querySelector(".d" + i).childNodes[3].classList.remove("row-highlight");
-			document.querySelector(".d" + i).childNodes[5].classList.remove("row-highlight");
-			document.querySelector(".d" + i).childNodes[7].classList.remove("row-highlight");
-		}
+        document.querySelector(".d" + (i + 1)).childNodes[1].classList.add("row-highlight");
+        document.querySelector(".d" + (i + 1)).childNodes[3].classList.add("row-highlight");
+        document.querySelector(".d" + (i + 1)).childNodes[5].classList.add("row-highlight");
+        document.querySelector(".d" + (i + 1)).childNodes[7].classList.add("row-highlight");
 
-		document.querySelectorAll(".d" + (i + 1)).forEach(function (bruh) {
-			if (bruh.childNodes[1].classList.contains("row-highlight") && bruh.childNodes[1].classList.contains("item-selected")) {
-				kick.load();
-				kick.play();
-			}
+        if (i > 0) {
+            document.querySelector(".d" + i).childNodes[1].classList.remove("row-highlight");
+            document.querySelector(".d" + i).childNodes[3].classList.remove("row-highlight");
+            document.querySelector(".d" + i).childNodes[5].classList.remove("row-highlight");
+            document.querySelector(".d" + i).childNodes[7].classList.remove("row-highlight");
+        }
 
-			if (bruh.childNodes[3].classList.contains("row-highlight") && bruh.childNodes[3].classList.contains("item-selected")) {
-				clap.load();
-				clap.play();
-			}
+        document.querySelectorAll(".d" + (i + 1)).forEach(function (bruh) {
+            if (bruh.childNodes[1].classList.contains("row-highlight") && bruh.childNodes[1].classList.contains("item-selected")) {
+                playDrumSound('kick');
+            }
 
-			if (bruh.childNodes[5].classList.contains("row-highlight") && bruh.childNodes[5].classList.contains("item-selected")) {
-				hihat.load();
-				hihat.play();
-			}
+            if (bruh.childNodes[3].classList.contains("row-highlight") && bruh.childNodes[3].classList.contains("item-selected")) {
+                playDrumSound('snare');
+            }
 
-			if (bruh.childNodes[7].classList.contains("row-highlight") && bruh.childNodes[7].classList.contains("item-selected")) {
-				rim.load();
-				rim.play();
-			}
-		});
+            if (bruh.childNodes[5].classList.contains("row-highlight") && bruh.childNodes[5].classList.contains("item-selected")) {
+                playDrumSound('hihat');
+            }
 
-		rowLoop();
-	}, BPM);
+            if (bruh.childNodes[7].classList.contains("row-highlight") && bruh.childNodes[7].classList.contains("item-selected")) {
+                playDrumSound('rim');
+            }
+        });
+
+        rowLoop();
+    }, BPM);
 }
 
-// Call rowLoop() function
-rowLoop();
+function togglePlayStop() {
+    const playStopButton = document.getElementById("play-stop-button");
+    isPlaying = !isPlaying;
+    if (isPlaying) {
+        playStopButton.classList.remove("play");
+        playStopButton.classList.add("stop");
+        rowLoop();
+    } else {
+        playStopButton.classList.remove("stop");
+        playStopButton.classList.add("play");
+        clearTimeout(loopTimeout);
+        i = -1; // Reset the loop counter
+        // Clear highlights
+        for (let row of rows) {
+            for (let cell of row.childNodes) {
+                cell.classList.remove("row-highlight");
+            }
+        }
+    }
+}
+
+document.getElementById("play-stop-button").onclick = togglePlayStop;
