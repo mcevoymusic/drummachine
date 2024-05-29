@@ -1,9 +1,9 @@
 const rows = document.querySelector(".sequencer").children;
 
-const kick = new Audio("https://raw.githubusercontent.com/mcevoymusic/drummachine/main/Sounds/Kick.wav"),
-	clap = new Audio("https://raw.githubusercontent.com/mcevoymusic/drummachine/main/Sounds/Snare.wav"),
-	hihat = new Audio("https://raw.githubusercontent.com/mcevoymusic/drummachine/main/Sounds/Hat.wav"),
-	rim = new Audio("https://raw.githubusercontent.com/mcevoymusic/drummachine/master/Sounds/Rim.wav"),
+const kick = new Audio("https://raw.githubusercontent.com/mcevoymusic/drummachine/main/Sounds/Kick.mp3"),
+	clap = new Audio("https://raw.githubusercontent.com/mcevoymusic/drummachine/main/Sounds/Snare.mp3"),
+	hihat = new Audio("https://raw.githubusercontent.com/mcevoymusic/drummachine/main/Sounds/Hat..mp3"),
+	rim = new Audio("https://raw.githubusercontent.com/mcevoymusic/drummachine/master/Sounds/Rim.mp3"),
 	Q = new Audio("https://raw.githubusercontent.com/kucerajacob/DRUM-SEQUENCER/master/audio/Q.mp3"),
 	W = new Audio("https://raw.githubusercontent.com/kucerajacob/DRUM-SEQUENCER/master/audio/W.mp3"),
 	E = new Audio("https://raw.githubusercontent.com/kucerajacob/DRUM-SEQUENCER/master/audio/E.mp3"),
