@@ -1,6 +1,8 @@
 // Initialize AudioContext
 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
+let isDragging = false;
+
 // Function to generate a drum sound
 function playDrumSound(type) {
     const oscillator = audioContext.createOscillator();
@@ -19,31 +21,33 @@ function playDrumSound(type) {
             oscillator.stop(audioContext.currentTime + 0.5);
             break;
         case 'snare':
-            const whiteNoise = audioContext.createBufferSource();
+            const snareNoise = audioContext.createBufferSource();
             const bufferSize = audioContext.sampleRate;
             const buffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
             const data = buffer.getChannelData(0);
             for (let i = 0; i < bufferSize; i++) {
                 data[i] = Math.random() * 2 - 1;
             }
-            whiteNoise.buffer = buffer;
+            snareNoise.buffer = buffer;
 
-            const noiseGain = audioContext.createGain();
-            whiteNoise.connect(noiseGain);
-            noiseGain.connect(audioContext.destination);
+            const snareGain = audioContext.createGain();
+            snareNoise.connect(snareGain);
+            snareGain.connect(audioContext.destination);
 
-            noiseGain.gain.setValueAtTime(1, audioContext.currentTime);
-            noiseGain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+            snareGain.gain.setValueAtTime(1, audioContext.currentTime);
+            snareGain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
 
-            oscillator.type = 'triangle';
-            oscillator.frequency.setValueAtTime(200, audioContext.currentTime);
-            gainNode.gain.setValueAtTime(1, audioContext.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+            const snareOscillator = audioContext.createOscillator();
+            snareOscillator.type = 'triangle';
+            snareOscillator.frequency.setValueAtTime(200, audioContext.currentTime);
+            snareOscillator.connect(snareGain);
+            snareGain.gain.setValueAtTime(1, audioContext.currentTime);
+            snareGain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
 
-            whiteNoise.start(audioContext.currentTime);
-            whiteNoise.stop(audioContext.currentTime + 0.2);
-            oscillator.start(audioContext.currentTime);
-            oscillator.stop(audioContext.currentTime + 0.1);
+            snareNoise.start(audioContext.currentTime);
+            snareNoise.stop(audioContext.currentTime + 0.2);
+            snareOscillator.start(audioContext.currentTime);
+            snareOscillator.stop(audioContext.currentTime + 0.1);
             break;
         case 'hihat':
             const hiHatNoise = audioContext.createBufferSource();
@@ -85,11 +89,41 @@ function playDrumSound(type) {
 const rows = document.querySelector(".sequencer").children;
 const item = document.querySelectorAll(".sample");
 
+function toggleItemSelection(el) {
+    el.classList.toggle("item-selected");
+}
+
 // Checkbox toggle functionality
 item.forEach(function (el) {
-    el.onclick = function () {
-        el.classList.toggle("item-selected");
-    };
+    el.addEventListener('mousedown', function (e) {
+        toggleItemSelection(el);
+        isDragging = true;
+        e.preventDefault(); // Prevents text selection during drag
+    });
+
+    el.addEventListener('mouseover', function () {
+        if (isDragging) {
+            toggleItemSelection(el);
+        }
+    });
+});
+
+document.addEventListener('mouseup', function () {
+    if (isDragging) {
+        isDragging = false;
+    }
+});
+
+document.addEventListener('mouseleave', function () {
+    if (isDragging) {
+        isDragging = false;
+    }
+});
+
+window.addEventListener('mouseleave', function () {
+    if (isDragging) {
+        isDragging = false;
+    }
 });
 
 // Clear button functionality
